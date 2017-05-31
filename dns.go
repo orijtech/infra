@@ -178,7 +178,7 @@ func (r *Record) toRecordSet() *dns.ResourceRecordSet {
 	}
 
 	if r.CanonicalName != "" {
-		rrset.Rrdatas = append(rrset.Rrdatas, r.CanonicalName)
+		rrset.Rrdatas = append(rrset.Rrdatas, ensureHasTrailingDot(r.CanonicalName))
 	}
 
 	rrset.Rrdatas = append(rrset.Rrdatas, r.CertificateAuthorityAuthorizations...)

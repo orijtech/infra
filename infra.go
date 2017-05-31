@@ -14,6 +14,7 @@ import (
 
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
+	"google.golang.org/api/storage/v1"
 )
 
 var defaultGCEScopes = []string{}
@@ -21,6 +22,7 @@ var defaultGCEScopes = []string{}
 type Client struct {
 	computeSrvc *compute.Service
 	dnsSrvc     *dns.Service
+	storageSrvc *storage.Service
 }
 
 func NewWithHTTPClient(hc *http.Client) (*Client, error) {
@@ -32,9 +34,15 @@ func NewWithHTTPClient(hc *http.Client) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
+	storageSrvc, err := storage.New(hc)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Client{
 		computeSrvc: computeSrvc,
 		dnsSrvc:     dnsSrvc,
+		storageSrvc: storageSrvc,
 	}
 	return c, nil
 }
