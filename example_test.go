@@ -158,12 +158,14 @@ func Example_client_DeleteRecordSets() {
 
 		Records: []*infra.Record{
 			{
-				Type: infra.AName, DNSName: "git.orijtech.com.",
-				IPV4Addresses: []string{"130.211.187.103"},
+				Type: infra.AName, DNSName: "flick.orijtech.com.",
+				IPV4Addresses: []string{"35.184.3.107"},
 			},
-
-			{Type: infra.CName, DNSName: "www.git.orijtech.com.", CanonicalName: "git.orijtech.com."},
-			{Type: infra.CName, DNSName: "g.orijtech.com.", CanonicalName: "git.orijtech.com."},
+			{Type: infra.CName, DNSName: "el.orijtech.com.", CanonicalName: "edison.orijtech.com."},
+			{Type: infra.CName, DNSName: "tset.orijtech.com.", CanonicalName: "edison.orijtech.com."},
+			{Type: infra.CName, DNSName: "f.orijtech.com.", CanonicalName: "fullsetup.orijtech.com."},
+			{Type: infra.CName, DNSName: "fli.orijtech.com.", CanonicalName: "fullsetup.orijtech.com."},
+			{Type: infra.CName, DNSName: "flic.orijtech.com.", CanonicalName: "fullsetup.orijtech.com."},
 		},
 	})
 	if err != nil {
@@ -171,4 +173,30 @@ func Example_client_DeleteRecordSets() {
 	}
 
 	fmt.Printf("delRes: %+v\n", delRes)
+}
+
+func Example_client_FullSetup() {
+	infraClient, err := infra.NewDefaultClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	setupInfo, err := infraClient.FullSetup(&infra.Setup{
+		Project: "orijtech-161805",
+		Zone:    "us-central1-c",
+
+		ProjectDescription: "full-setup",
+		MachineName:        "full-setup-sample",
+
+		DomainName:   "edison.orijtech.com",
+		ProxyAddress: "http://10.128.0.5/",
+		Aliases:      []string{"www.edison.orijtech.com", "el.orijtech.com"},
+
+		IPV4Addresses: []string{"35.184.3.107"},
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("SetupResponse: %#v\n", setupInfo)
 }

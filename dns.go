@@ -3,7 +3,6 @@ package infra
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -407,10 +406,7 @@ func toRecordSets(records ...*Record) ([]*dns.ResourceRecordSet, error) {
 		if err := rec.Validate(); err != nil {
 			return nil, err
 		}
-		rr := rec.toRecordSet()
-		rrsets = append(rrsets, rr)
-
-		log.Printf("rr: %#v\n", rr)
+		rrsets = append(rrsets, rec.toRecordSet())
 	}
 	return rrsets, nil
 }

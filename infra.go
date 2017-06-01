@@ -361,6 +361,10 @@ type InstanceRequest struct {
 	// Description obtained from:
 	// https://godoc.org/google.golang.org/api/compute/v1#Instance.NullFields
 	NullFields []string `json:"null_fields"`
+
+	// BlockUntilCompletion when set signifies that the instance request
+	// should wait until full completion of creation of an instance.
+	BlockUntilCompletion bool `json:"block_until_completion"`
 }
 
 func (ireq *InstanceRequest) toInstance() *compute.Instance {
@@ -456,5 +460,7 @@ func (c *Client) CreateInstance(ireq *InstanceRequest) (*compute.Instance, error
 		Name:    ireq.Name,
 		Zone:    ireq.Zone,
 		Project: ireq.Project,
+
+		BlockUntilCompletion: ireq.BlockUntilCompletion,
 	})
 }
