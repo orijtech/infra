@@ -82,11 +82,16 @@ func (c *Client) generateMachineAndIPV4Addresses(req *Setup) ([]string, error) {
 		}
 	}
 
+	return ipv4AddressesFromInstance(instance), nil
+}
+
+func ipv4AddressesFromInstance(instance *compute.Instance) []string {
 	var ipv4Addresses []string
 	for _, netInterface := range instance.NetworkInterfaces {
 		ipv4Addresses = append(ipv4Addresses, netInterface.NetworkIP)
 	}
-	return ipv4Addresses, nil
+	return ipv4Addresses
+
 }
 
 func (c *Client) generateMachine(req *Setup) (*compute.Instance, error) {

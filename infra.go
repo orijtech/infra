@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"sync"
 	"time"
@@ -454,13 +455,28 @@ func (c *Client) CreateInstance(ireq *InstanceRequest) (*compute.Instance, error
 		}
 	}
 
+	var instance *compute.Instance
 	// Then look up the instance by ID since an
 	// operation just returns the ID of the item created.
-	return c.FindInstance(&InstanceRequest{
-		Name:    ireq.Name,
-		Zone:    ireq.Zone,
-		Project: ireq.Project,
+	for i := 0; i < 10; i++ {
+		instance, err = c.FindInstance(&InstanceRequest{
+			Name:    ireq.Name,
+			Zone:    ireq.Zone,
+			Project: ireq.Project,
 
-		BlockUntilCompletion: ireq.BlockUntilCompletion,
-	})
+			BlockUntilCompletion: ireq.BlockUntilCompletion,
+		})
+
+		if err == nil {
+			ipv4Addresses := ipv4AddressesFromInstance(instance)
+			if len(ipv4Addresses) > 0 {
+				// Ready to return
+				return instance, nil
+			}
+		}
+
+		<-time.After(time.Duration(rand.Intn(4+i)) * time.Second)
+	}
+
+	return instance, err
 }
