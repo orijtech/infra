@@ -3,9 +3,11 @@ package infra_test
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"strings"
 
-	"github.com/odeke-em/infra"
+	"github.com/orijtech/infra"
 )
 
 func Example_client_ListZones() {
@@ -14,7 +16,7 @@ func Example_client_ListZones() {
 		log.Fatal(err)
 	}
 	zres, err := client.ListZones(&infra.ZoneRequest{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -37,7 +39,7 @@ func Example_client_ListInstances() {
 		log.Fatal(err)
 	}
 	ires, err := client.ListInstances(&infra.InstancesRequest{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 	})
 	if err != nil {
@@ -64,7 +66,7 @@ func Example_client_CreateInstance() {
 	instance, err := client.CreateInstance(&infra.InstanceRequest{
 		Description: "Git server",
 
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 		Name:    "git-server",
 
@@ -83,7 +85,7 @@ func Example_client_FindInstance() {
 		log.Fatal(err)
 	}
 	instance, err := client.FindInstance(&infra.InstanceRequest{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 		Name:    "archomp",
 	})
@@ -100,7 +102,7 @@ func Example_client_ListDNSRecordSets() {
 		log.Fatal(err)
 	}
 	ires, err := client.ListDNSRecordSets(&infra.RecordSetRequest{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
 		DomainName: "orijtech.com",
@@ -127,7 +129,7 @@ func Example_client_AddRecordSets() {
 		log.Fatal(err)
 	}
 	addRes, err := client.AddRecordSets(&infra.UpdateRequest{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
 		Records: []*infra.Record{
@@ -153,13 +155,13 @@ func Example_client_DeleteRecordSets() {
 		log.Fatal(err)
 	}
 	delRes, err := client.DeleteRecordSets(&infra.UpdateRequest{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
 		Records: []*infra.Record{
 			{
 				Type: infra.AName, DNSName: "flick.orijtech.com.",
-				IPV4Addresses: []string{"35.184.3.107"},
+				IPV4Addresses: []string{"37.45.3.107"},
 			},
 			{Type: infra.CName, DNSName: "el.orijtech.com.", CanonicalName: "edison.orijtech.com."},
 			{Type: infra.CName, DNSName: "tset.orijtech.com.", CanonicalName: "edison.orijtech.com."},
@@ -182,7 +184,7 @@ func Example_client_FullSetup() {
 	}
 
 	setupInfo, err := infraClient.FullSetup(&infra.Setup{
-		Project: "orijtech-161805",
+		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
 		ProjectDescription: "full-setup",
@@ -192,11 +194,32 @@ func Example_client_FullSetup() {
 		ProxyAddress: "http://10.128.0.5/",
 		Aliases:      []string{"www.edison.orijtech.com", "el.orijtech.com"},
 
-		IPV4Addresses: []string{"35.184.3.107"},
+		IPV4Addresses: []string{"37.45.3.107"},
 	})
 
 	if err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("SetupResponse: %#v\n", setupInfo)
+}
+
+func Example_client_Upload() {
+	infraClient, err := infra.NewDefaultClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	outParams := &infra.UploadParams{
+		Reader: func() io.Reader { return strings.NewReader("This is an upload") },
+		Name:   "foo",
+		Bucket: "bucket",
+		Public: true,
+	}
+
+	obj, err := infraClient.UploadWithParams(outParams)
+	if err != nil {
+		log.Fatalf("uploadWithParams: %v", err)
+	}
+	fmt.Printf("The URL: %s\n", infra.ObjectURL(obj))
+	fmt.Printf("Size: %d\n", obj.Size)
 }

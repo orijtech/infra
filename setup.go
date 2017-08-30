@@ -9,7 +9,8 @@ import (
 	"google.golang.org/api/compute/v1"
 	"google.golang.org/api/dns/v1"
 
-	"github.com/odeke-em/frontender"
+	"github.com/orijtech/frontender"
+
 	"github.com/odeke-em/go-uuid"
 )
 
@@ -180,11 +181,11 @@ func (c *Client) FullSetup(req *Setup) (*SetupResponse, error) {
 	// Now generate the binary
 	rc, err := frontender.GenerateBinary(&frontender.DeployInfo{
 		FrontendConfig: &frontender.Request{
-			Domains:      httpsDomains,
-			ProxyAddress: req.ProxyAddress,
-
+			Domains:    httpsDomains,
 			Environ:    req.Environ[:],
 			TargetGOOS: req.TargetGOOS,
+
+			ProxyAddresses: []string{req.ProxyAddress},
 
 			NonHTTPSRedirectURL: nonHTTPSRedirectURL,
 		},
