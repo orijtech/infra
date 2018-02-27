@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/orijtech/infra"
@@ -222,4 +223,29 @@ func Example_client_Upload() {
 	}
 	fmt.Printf("The URL: %s\n", infra.ObjectURL(obj))
 	fmt.Printf("Size: %d\n", obj.Size)
+}
+
+func Example_client_Download() {
+	infraClient, err := infra.NewDefaultClient()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	body, err := infraClient.Download("archomp", "demos/gears.gif")
+	if err != nil {
+		log.Fatalf("Download: %v", err)
+	}
+	defer body.Close()
+
+	f, err := os.Create("gears.gif")
+	if err != nil {
+		log.Fatalf("Creating bar.png: %v", err)
+	}
+	defer f.Close()
+
+	n, err := io.Copy(f, body)
+	if err != nil {
+		log.Fatalf("io.Copy err: %v", err)
+	}
+	fmt.Printf("Wrote %d bytes to disk!\n", n)
 }

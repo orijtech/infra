@@ -18,7 +18,7 @@ import (
 	"google.golang.org/api/storage/v1"
 )
 
-var defaultGCEScopes = []string{}
+var defaultGCEScopes = []string{storage.CloudPlatformScope}
 
 type Client struct {
 	computeSrvc *compute.Service

@@ -6,6 +6,8 @@ import (
 	"io"
 
 	"google.golang.org/api/storage/v1"
+
+	"github.com/orijtech/otils"
 )
 
 type UploadParams struct {
@@ -72,6 +74,30 @@ func (c *Client) objectsService() *storage.ObjectsService {
 
 func (c *Client) bucketsService() *storage.BucketsService {
 	return storage.NewBucketsService(c.storageSrvc)
+}
+
+func (c *Client) Download(bucket, path string) (io.ReadCloser, error) {
+	objGetCall := c.objectsService().Get(bucket, path)
+	res, err := objGetCall.Download()
+	if err != nil {
+		return nil, err
+	}
+
+	if otils.StatusOK(res.StatusCode) {
+		return res.Body, nil
+	}
+
+	// Otherwise we are now dealing with non-2XX codes.
+	if res.Body != nil {
+		// TODO: Document this weird case
+		return res.Body, nil
+	}
+	return nil, errors.New(res.Status)
+}
+
+func (c *Client) Object(bucket, path string) (*storage.Object, error) {
+	objGetCall := c.objectsService().Get(bucket, path)
+	return objGetCall.Do()
 }
 
 func (c *Client) UploadWithParams(params *UploadParams) (*storage.Object, error) {
