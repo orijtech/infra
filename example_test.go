@@ -24,7 +24,7 @@ func Example_client_ListZones() {
 
 	for page := range zres.Pages {
 		if err := page.Err; err != nil {
-			log.Printf("PageNumber: %#d err: %v", page.PageNumber, err)
+			log.Printf("PageNumber: #%d err: %v", page.PageNumber, err)
 			continue
 		}
 		for i, zone := range page.Zones {
@@ -48,7 +48,7 @@ func Example_client_ListInstances() {
 
 	for page := range ires.Pages {
 		if err := page.Err; err != nil {
-			log.Printf("PageNumber: %#d err: %v", page.PageNumber, err)
+			log.Printf("PageNumber: #%d err: %v", page.PageNumber, err)
 			continue
 		}
 		for i, instance := range page.Instances {
@@ -113,7 +113,7 @@ func Example_client_ListDNSRecordSets() {
 
 	for page := range ires.Pages {
 		if err := page.Err; err != nil {
-			log.Printf("PageNumber: %#d err: %v", page.PageNumber, err)
+			log.Printf("PageNumber: #%d err: %v", page.PageNumber, err)
 			continue
 		}
 		for i, rset := range page.RecordSets {
