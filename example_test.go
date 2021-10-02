@@ -1,6 +1,7 @@
 package infra_test
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,11 +13,12 @@ import (
 )
 
 func Example_client_ListZones() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	zres, err := client.ListZones(&infra.ZoneRequest{
+	zres, err := client.ListZones(ctx, &infra.ZoneRequest{
 		Project: "sample-981058",
 	})
 	if err != nil {
@@ -35,11 +37,12 @@ func Example_client_ListZones() {
 }
 
 func Example_client_ListInstances() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	ires, err := client.ListInstances(&infra.InstancesRequest{
+	ires, err := client.ListInstances(ctx, &infra.InstancesRequest{
 		Project: "sample-981058",
 		Zone:    "us-central1-c",
 	})
@@ -60,11 +63,12 @@ func Example_client_ListInstances() {
 }
 
 func Example_client_CreateInstance() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	instance, err := client.CreateInstance(&infra.InstanceRequest{
+	instance, err := client.CreateInstance(ctx, &infra.InstanceRequest{
 		Description: "Git server",
 
 		Project: "sample-981058",
@@ -81,11 +85,12 @@ func Example_client_CreateInstance() {
 }
 
 func Example_client_FindInstance() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	instance, err := client.FindInstance(&infra.InstanceRequest{
+	instance, err := client.FindInstance(ctx, &infra.InstanceRequest{
 		Project: "sample-981058",
 		Zone:    "us-central1-c",
 		Name:    "archomp",
@@ -98,11 +103,12 @@ func Example_client_FindInstance() {
 }
 
 func Example_client_ListDNSRecordSets() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	ires, err := client.ListDNSRecordSets(&infra.RecordSetRequest{
+	ires, err := client.ListDNSRecordSets(ctx, &infra.RecordSetRequest{
 		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
@@ -125,11 +131,12 @@ func Example_client_ListDNSRecordSets() {
 }
 
 func Example_client_AddRecordSets() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	addRes, err := client.AddRecordSets(&infra.UpdateRequest{
+	addRes, err := client.AddRecordSets(ctx, &infra.UpdateRequest{
 		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
@@ -151,11 +158,12 @@ func Example_client_AddRecordSets() {
 }
 
 func Example_client_DeleteRecordSets() {
-	client, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	client, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-	delRes, err := client.DeleteRecordSets(&infra.UpdateRequest{
+	delRes, err := client.DeleteRecordSets(ctx, &infra.UpdateRequest{
 		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
@@ -179,12 +187,13 @@ func Example_client_DeleteRecordSets() {
 }
 
 func Example_client_FullSetup() {
-	infraClient, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	infraClient, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	setupInfo, err := infraClient.FullSetup(&infra.Setup{
+	setupInfo, err := infraClient.FullSetup(ctx, &infra.Setup{
 		Project: "sample-981058",
 		Zone:    "us-central1-c",
 
@@ -205,7 +214,8 @@ func Example_client_FullSetup() {
 }
 
 func Example_client_Upload() {
-	infraClient, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	infraClient, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -217,7 +227,7 @@ func Example_client_Upload() {
 		Public: true,
 	}
 
-	obj, err := infraClient.UploadWithParams(outParams)
+	obj, err := infraClient.UploadWithParams(ctx, outParams)
 	if err != nil {
 		log.Fatalf("uploadWithParams: %v", err)
 	}
@@ -226,12 +236,13 @@ func Example_client_Upload() {
 }
 
 func Example_client_Download() {
-	infraClient, err := infra.NewDefaultClient()
+	ctx := context.Background()
+	infraClient, err := infra.NewDefaultClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	body, err := infraClient.Download("archomp", "demos/gears.gif")
+	body, err := infraClient.Download(ctx, "archomp", "demos/gears.gif")
 	if err != nil {
 		log.Fatalf("Download: %v", err)
 	}

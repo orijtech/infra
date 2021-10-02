@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -47,7 +48,7 @@ func (c *Client) recordSetsService() *dns.ResourceRecordSetsService {
 	return dns.NewResourceRecordSetsService(c.dnsSrvc)
 }
 
-func (c *Client) ListDNSRecordSets(rreq *RecordSetRequest) (*RecordSetPagesResponse, error) {
+func (c *Client) ListDNSRecordSets(ctx context.Context, rreq *RecordSetRequest) (*RecordSetPagesResponse, error) {
 	if err := rreq.Validate(); err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (c *Client) ListDNSRecordSets(rreq *RecordSetRequest) (*RecordSetPagesRespo
 	go func() {
 		defer close(pagesChan)
 
-		dnsLc := c.recordSetsService().List(rreq.Project, rreq.Zone)
+		dnsLc := c.recordSetsService().List(rreq.Project, rreq.Zone).Context(ctx)
 		dnsLc.MaxResults(maxResultsPerPage)
 
 		if rreq.DomainName != "" {
@@ -354,7 +355,7 @@ func (ureq *UpdateRequest) validate() error {
 	return nil
 }
 
-func (c *Client) UpdateRecordSets(ureq *UpdateRequest) (*dns.Change, error) {
+func (c *Client) UpdateRecordSets(ctx context.Context, ureq *UpdateRequest) (*dns.Change, error) {
 	if err := ureq.validate(); err != nil {
 		return nil, err
 	}
@@ -372,28 +373,28 @@ func (c *Client) UpdateRecordSets(ureq *UpdateRequest) (*dns.Change, error) {
 		Deletions: deletions,
 	}
 
-	cl := c.changesService().Create(ureq.Project, ureq.Zone, change)
+	cl := c.changesService().Create(ureq.Project, ureq.Zone, change).Context(ctx)
 	return cl.Do()
 }
 
-func (c *Client) AddRecordSets(areq *UpdateRequest) (*dns.Change, error) {
+func (c *Client) AddRecordSets(ctx context.Context, areq *UpdateRequest) (*dns.Change, error) {
 	if areq == nil {
 		return nil, errBlankUpdateRequest
 	}
 
-	return c.UpdateRecordSets(&UpdateRequest{
+	return c.UpdateRecordSets(ctx, &UpdateRequest{
 		Zone:      areq.Zone,
 		Project:   areq.Project,
 		Additions: areq.Records[:],
 	})
 }
 
-func (c *Client) DeleteRecordSets(dreq *UpdateRequest) (*dns.Change, error) {
+func (c *Client) DeleteRecordSets(ctx context.Context, dreq *UpdateRequest) (*dns.Change, error) {
 	if dreq == nil {
 		return nil, errBlankUpdateRequest
 	}
 
-	return c.UpdateRecordSets(&UpdateRequest{
+	return c.UpdateRecordSets(ctx, &UpdateRequest{
 		Zone:      dreq.Zone,
 		Project:   dreq.Project,
 		Deletions: dreq.Records[:],

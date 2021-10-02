@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -65,15 +66,15 @@ func (req *Setup) Validate() error {
 	return nil
 }
 
-func (c *Client) generateMachineAndIPV4Addresses(req *Setup) ([]string, error) {
-	instance, err := c.generateMachine(req)
+func (c *Client) generateMachineAndIPV4Addresses(ctx context.Context, req *Setup) ([]string, error) {
+	instance, err := c.generateMachine(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(instance.NetworkInterfaces) == 0 {
 		// Now fetch them directly
-		instance, err = c.FindInstance(&InstanceRequest{
+		instance, err = c.FindInstance(ctx, &InstanceRequest{
 			Project: req.Project,
 			Zone:    req.Zone,
 			Name:    req.MachineName,
@@ -95,8 +96,8 @@ func ipv4AddressesFromInstance(instance *compute.Instance) []string {
 
 }
 
-func (c *Client) generateMachine(req *Setup) (*compute.Instance, error) {
-	return c.CreateInstance(&InstanceRequest{
+func (c *Client) generateMachine(ctx context.Context, req *Setup) (*compute.Instance, error) {
+	return c.CreateInstance(ctx, &InstanceRequest{
 		Description: req.ProjectDescription,
 
 		Project: req.Project,
@@ -107,7 +108,7 @@ func (c *Client) generateMachine(req *Setup) (*compute.Instance, error) {
 	})
 }
 
-func (c *Client) generateRecordSets(req *Setup, ipv4Addresses ...string) (*dns.Change, error) {
+func (c *Client) generateRecordSets(ctx context.Context, req *Setup, ipv4Addresses ...string) (*dns.Change, error) {
 	ireq := &UpdateRequest{
 		Project: req.Project,
 		Zone:    req.Zone,
@@ -128,7 +129,7 @@ func (c *Client) generateRecordSets(req *Setup, ipv4Addresses ...string) (*dns.C
 		})
 	}
 
-	return c.AddRecordSets(ireq)
+	return c.AddRecordSets(ctx, ireq)
 }
 
 func stripTrailingDot(s string) string { return strings.TrimSuffix(s, ".") }
@@ -153,7 +154,7 @@ func httpsify(s string) string {
 	return "https://" + s
 }
 
-func (c *Client) FullSetup(req *Setup) (*SetupResponse, error) {
+func (c *Client) FullSetup(ctx context.Context, req *Setup) (*SetupResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -162,14 +163,14 @@ func (c *Client) FullSetup(req *Setup) (*SetupResponse, error) {
 	if len(ipv4Addresses) == 0 {
 		// Time to generate that server
 		var err error
-		ipv4Addresses, err = c.generateMachineAndIPV4Addresses(req)
+		ipv4Addresses, err = c.generateMachineAndIPV4Addresses(ctx, req)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Now create that DNS mapping:
-	dnsChange, err := c.generateRecordSets(req, ipv4Addresses...)
+	dnsChange, err := c.generateRecordSets(ctx, req, ipv4Addresses...)
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +196,7 @@ func (c *Client) FullSetup(req *Setup) (*SetupResponse, error) {
 	}
 
 	// Now upload the binary
-	obj, err := c.UploadWithParams(&UploadParams{
+	obj, err := c.UploadWithParams(ctx, &UploadParams{
 		Project: req.Project,
 		Public:  true,
 		Bucket:  "frontender-binaries",

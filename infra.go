@@ -48,11 +48,11 @@ func NewWithHTTPClient(hc *http.Client) (*Client, error) {
 	return c, nil
 }
 
-func NewDefaultClient(scopes ...string) (*Client, error) {
+func NewDefaultClient(ctx context.Context, scopes ...string) (*Client, error) {
 	if len(scopes) == 0 {
 		scopes = defaultGCEScopes[:]
 	}
-	httpClient, err := google.DefaultClient(context.Background(), scopes...)
+	httpClient, err := google.DefaultClient(ctx, scopes...)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (ireq *InstancesRequest) Validate() error {
 	return nil
 }
 
-func (c *Client) ListInstances(req *InstancesRequest) (*InstancePagesResponse, error) {
+func (c *Client) ListInstances(ctx context.Context, req *InstancesRequest) (*InstancePagesResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (c *Client) ListInstances(req *InstancesRequest) (*InstancePagesResponse, e
 	go func() {
 		defer close(pagesChan)
 
-		ilc := c.instancesService().List(req.Project, req.Zone)
+		ilc := c.instancesService().List(req.Project, req.Zone).Context(ctx)
 		ilc.MaxResults(maxResultsPerPage)
 		if req.Filter != "" {
 			ilc.Filter(req.Filter)
@@ -234,7 +234,7 @@ func (c *Client) ListInstances(req *InstancesRequest) (*InstancePagesResponse, e
 	return ires, nil
 }
 
-func (c *Client) ListZones(req *ZoneRequest) (*ZonePagesResponse, error) {
+func (c *Client) ListZones(ctx context.Context, req *ZoneRequest) (*ZonePagesResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -257,7 +257,7 @@ func (c *Client) ListZones(req *ZoneRequest) (*ZonePagesResponse, error) {
 	go func() {
 		defer close(pagesChan)
 
-		zlc := c.zonesService().List(req.Project)
+		zlc := c.zonesService().List(req.Project).Context(ctx)
 		zlc.MaxResults(maxResultsPerPage)
 		if req.Filter != "" {
 			zlc.Filter(req.Filter)
@@ -426,20 +426,20 @@ func (ireq *InstanceRequest) validateForByName() error {
 	return ireq.validateBasic()
 }
 
-func (c *Client) FindInstance(ireq *InstanceRequest) (*compute.Instance, error) {
+func (c *Client) FindInstance(ctx context.Context, ireq *InstanceRequest) (*compute.Instance, error) {
 	if err := ireq.validateForByName(); err != nil {
 		return nil, err
 	}
 	req := c.instancesService().Get(ireq.Project, ireq.Zone, ireq.Name)
-	return req.Do()
+	return req.Context(ctx).Do()
 }
 
-func (c *Client) CreateInstance(ireq *InstanceRequest) (*compute.Instance, error) {
+func (c *Client) CreateInstance(ctx context.Context, ireq *InstanceRequest) (*compute.Instance, error) {
 	if err := ireq.validateForCreate(); err != nil {
 		return nil, err
 	}
 	req := c.instancesService().Insert(ireq.Project, ireq.Zone, ireq.toInstance())
-	operation, err := req.Do()
+	operation, err := req.Context(ctx).Do()
 	log.Printf("op: %+v err: %v\n", operation, err)
 	if err != nil {
 		return nil, err
@@ -459,7 +459,7 @@ func (c *Client) CreateInstance(ireq *InstanceRequest) (*compute.Instance, error
 	// Then look up the instance by ID since an
 	// operation just returns the ID of the item created.
 	for i := 0; i < 10; i++ {
-		instance, err = c.FindInstance(&InstanceRequest{
+		instance, err = c.FindInstance(ctx, &InstanceRequest{
 			Name:    ireq.Name,
 			Zone:    ireq.Zone,
 			Project: ireq.Project,

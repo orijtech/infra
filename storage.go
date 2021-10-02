@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -45,8 +46,8 @@ type BucketCheck struct {
 	Public  bool   `json:"public"`
 }
 
-func (c *Client) EnsureBucketExists(bc *BucketCheck) (*storage.Bucket, error) {
-	foundBucket, err := c.bucketsService().Get(bc.Bucket).Do()
+func (c *Client) EnsureBucketExists(ctx context.Context, bc *BucketCheck) (*storage.Bucket, error) {
+	foundBucket, err := c.bucketsService().Get(bc.Bucket).Context(ctx).Do()
 	if err != nil {
 		// TODO: Handle the respective error cases e.g:
 		// + failure to authenticate
@@ -58,7 +59,7 @@ func (c *Client) EnsureBucketExists(bc *BucketCheck) (*storage.Bucket, error) {
 	}
 
 	// Otherwise it is time to create that bucket.
-	bIns := c.bucketsService().Insert(bc.Project, &storage.Bucket{Name: bc.Bucket})
+	bIns := c.bucketsService().Insert(bc.Project, &storage.Bucket{Name: bc.Bucket}).Context(ctx)
 
 	var acl = "private"
 	if bc.Public {
@@ -76,8 +77,8 @@ func (c *Client) bucketsService() *storage.BucketsService {
 	return storage.NewBucketsService(c.storageSrvc)
 }
 
-func (c *Client) Download(bucket, path string) (io.ReadCloser, error) {
-	objGetCall := c.objectsService().Get(bucket, path)
+func (c *Client) Download(ctx context.Context, bucket, path string) (io.ReadCloser, error) {
+	objGetCall := c.objectsService().Get(bucket, path).Context(ctx)
 	res, err := objGetCall.Download()
 	if err != nil {
 		return nil, err
@@ -95,17 +96,17 @@ func (c *Client) Download(bucket, path string) (io.ReadCloser, error) {
 	return nil, errors.New(res.Status)
 }
 
-func (c *Client) Object(bucket, path string) (*storage.Object, error) {
+func (c *Client) Object(ctx context.Context, bucket, path string) (*storage.Object, error) {
 	objGetCall := c.objectsService().Get(bucket, path)
 	return objGetCall.Do()
 }
 
-func (c *Client) UploadWithParams(params *UploadParams) (*storage.Object, error) {
+func (c *Client) UploadWithParams(ctx context.Context, params *UploadParams) (*storage.Object, error) {
 	if err := params.Validate(); err != nil {
 		return nil, err
 	}
 
-	bucket, err := c.EnsureBucketExists(&BucketCheck{
+	bucket, err := c.EnsureBucketExists(ctx, &BucketCheck{
 		Project: params.Project,
 		Bucket:  params.Bucket,
 	})
@@ -118,7 +119,7 @@ func (c *Client) UploadWithParams(params *UploadParams) (*storage.Object, error)
 		Bucket: bucket.Name,
 	}
 
-	oIns := c.objectsService().Insert(params.Bucket, obj)
+	oIns := c.objectsService().Insert(params.Bucket, obj).Context(ctx)
 
 	var acl = "private"
 	if params.Public {
